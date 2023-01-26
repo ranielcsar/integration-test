@@ -1,7 +1,6 @@
 import {
   Input as ChakraInput,
   InputProps as ChakraInputProps,
-  Box,
   FormControl,
   FormLabel
 } from '@chakra-ui/react'

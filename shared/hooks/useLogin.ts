@@ -1,8 +1,7 @@
 import { UserData } from '@/shared/templates/LoginTemplate'
+import { apiURL } from '@/shared/lib/api'
 
-export const apiURL = 'https://dummyjson.com/auth/login'
-
-export async function loginFetch(username: string, password: string) {
+async function loginFetch(username: string, password: string) {
   const data = await fetch(apiURL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -15,4 +14,8 @@ export async function loginFetch(username: string, password: string) {
     .then((data) => data)
 
   return data as UserData
+}
+
+export function useLogin() {
+  return { login: loginFetch }
 }

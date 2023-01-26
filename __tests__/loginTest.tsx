@@ -1,12 +1,12 @@
 import React from 'react'
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, renderHook, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { LoginTemplate } from '@/shared/templates'
+import { useLogin } from '@/shared/hooks'
 import '@testing-library/jest-dom'
 import { UserEvent } from '@testing-library/user-event/dist/types/setup/setup'
-import { server } from '../mocks/server'
-import { loginFetchHandler } from '../mocks/handlers'
-import { loginFetch } from '@/shared/utils'
+import { server } from '@/mocks/server'
+import { loginTestHandler } from '@/mocks/handlers'
 import { act } from 'react-dom/test-utils'
 
 type SetupProps = {
@@ -16,7 +16,6 @@ type SetupProps = {
 }
 
 export const loginResponse = {
-  id: 15,
   username: 'kminchelle',
   email: 'kminchelle@qq.com'
 }
@@ -38,6 +37,11 @@ function renderLoginFormTest() {
 }
 
 async function loginSubmitTest() {
+  const {
+    result: {
+      current: { login }
+    }
+  } = renderHook(() => useLogin())
   const { user, userInput, passwordInput } = setup()
 
   const username = 'kminchelle'
@@ -51,9 +55,9 @@ async function loginSubmitTest() {
   await act(async () => {
     fireEvent.click(buttonElement)
 
-    server.use(loginFetchHandler)
+    server.use(loginTestHandler)
 
-    const data = await loginFetch(username, password)
+    const data = await login(username, password)
 
     expect(data).toEqual(expect.objectContaining(loginResponse))
   })

@@ -1,7 +1,8 @@
 import { TextInput, Button, UserInfos } from '@/shared/components'
-import { loginFetch, withTryCatch } from '@/shared/utils'
+import { withTryCatch } from '@/shared/utils'
 import { Box, Grid } from '@chakra-ui/react'
 import { FormEvent, useRef, useState } from 'react'
+import { useLogin } from '@/shared/hooks'
 
 export type UserData = {
   email: string
@@ -28,6 +29,8 @@ export function LoginTemplate() {
   const passwordRef = useRef<InputRefProps>(null)
   const [user, setUser] = useState<UserData>()
 
+  const { login } = useLogin()
+
   const handleLogin = async (evt: FormEvent) => {
     evt.preventDefault()
 
@@ -41,7 +44,7 @@ export function LoginTemplate() {
           password = userForTesting.password
         }
 
-        const data = await loginFetch(username, password)
+        const data = await login(username, password)
 
         setUser(data)
       }
