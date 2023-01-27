@@ -13,7 +13,11 @@ type SetupProps = {
   user: UserEvent
   userInput: HTMLElement
   passwordInput: HTMLElement
+  submitButton: HTMLElement
 }
+
+const username = 'kminchelle'
+const password = '0lelplR'
 
 export const loginResponse = {
   username: 'kminchelle',
@@ -22,38 +26,37 @@ export const loginResponse = {
 
 function setup(): SetupProps {
   render(<LoginTemplate />)
+
   const userInput = screen.getByPlaceholderText(/usuário/i)
   const passwordInput = screen.getByPlaceholderText(/senha/i)
+  const submitButton = screen.getByText(/login/i)
   const user = userEvent.setup()
 
-  return { user, userInput, passwordInput }
+  return { user, userInput, passwordInput, submitButton }
 }
 
 function renderLoginFormTest() {
-  const { userInput, passwordInput } = setup()
+  const { userInput, passwordInput, submitButton } = setup()
 
   expect(userInput).toBeInTheDocument()
   expect(passwordInput).toBeInTheDocument()
+  expect(submitButton).toBeInTheDocument()
 }
 
 async function loginSubmitTest() {
+  const { user, userInput, passwordInput, submitButton } = setup()
+
   const {
     result: {
       current: { login }
     }
   } = renderHook(() => useLogin())
-  const { user, userInput, passwordInput } = setup()
-
-  const username = 'kminchelle'
-  const password = '0lelplR'
 
   await user.type(userInput, username)
   await user.type(passwordInput, password)
 
-  const buttonElement = screen.getByText(/login/i)
-
   await act(async () => {
-    fireEvent.click(buttonElement)
+    fireEvent.click(submitButton)
 
     server.use(loginTestHandler)
 
