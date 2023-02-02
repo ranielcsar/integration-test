@@ -5,13 +5,13 @@ import { LoginTemplate } from '@/shared/templates'
 import { useLogin } from '@/shared/hooks'
 import '@testing-library/jest-dom'
 import { UserEvent } from '@testing-library/user-event/dist/types/setup/setup'
-import { server } from '@/mocks/server'
-import { loginTestHandler } from '@/mocks/handlers'
+import { server } from '@/__tests_mock/server'
+import { loginTestHandler } from '@/__tests_mock/handlers'
 import { act } from 'react-dom/test-utils'
 
 type SetupProps = {
   user: UserEvent
-  userInput: HTMLElement
+  usernameInput: HTMLElement
   passwordInput: HTMLElement
   submitButton: HTMLElement
 }
@@ -19,32 +19,42 @@ type SetupProps = {
 const username = 'kminchelle'
 const password = '0lelplR'
 
-export const loginResponse = {
-  username: 'kminchelle',
-  email: 'kminchelle@qq.com'
+const loginResponse = {
+  username: expect.any(String),
+  email: expect.any(String),
+  token: expect.any(String),
+  id: expect.any(Number),
+  firstName: expect.any(String),
+  lastName: expect.any(String),
+  gender: expect.any(String),
+  image: expect.any(String)
+}
+
+const errorResponse = {
+  message: expect.any(String)
 }
 
 function setup(): SetupProps {
   render(<LoginTemplate />)
 
-  const userInput = screen.getByPlaceholderText(/usuário/i)
+  const usernameInput = screen.getByPlaceholderText(/usuário/i)
   const passwordInput = screen.getByPlaceholderText(/senha/i)
   const submitButton = screen.getByText(/login/i)
   const user = userEvent.setup()
 
-  return { user, userInput, passwordInput, submitButton }
+  return { user, usernameInput, passwordInput, submitButton }
 }
 
 function renderLoginFormTest() {
-  const { userInput, passwordInput, submitButton } = setup()
+  const { usernameInput, passwordInput, submitButton } = setup()
 
-  expect(userInput).toBeInTheDocument()
+  expect(usernameInput).toBeInTheDocument()
   expect(passwordInput).toBeInTheDocument()
   expect(submitButton).toBeInTheDocument()
 }
 
-async function loginSubmitTest() {
-  const { user, userInput, passwordInput, submitButton } = setup()
+async function loginSuccessSubmitTest() {
+  const { user, usernameInput, passwordInput, submitButton } = setup()
 
   const {
     result: {
@@ -52,7 +62,7 @@ async function loginSubmitTest() {
     }
   } = renderHook(() => useLogin())
 
-  await user.type(userInput, username)
+  await user.type(usernameInput, username)
   await user.type(passwordInput, password)
 
   await act(async () => {
@@ -66,7 +76,31 @@ async function loginSubmitTest() {
   })
 }
 
+async function loginFailureSubmitTest() {
+  const { user, usernameInput, passwordInput, submitButton } = setup()
+
+  const {
+    result: {
+      current: { login }
+    }
+  } = renderHook(() => useLogin())
+
+  await user.type(usernameInput, '1123123')
+  await user.type(passwordInput, password)
+
+  await act(async () => {
+    fireEvent.click(submitButton)
+
+    server.use(loginTestHandler)
+
+    const data = await login('1123123', password)
+
+    expect(data).toEqual(expect.objectContaining(errorResponse))
+  })
+}
+
 describe('Login render and submit', () => {
   it('should render login form', renderLoginFormTest)
-  it('should login when submit', loginSubmitTest)
+  it('should login on submit', loginSuccessSubmitTest)
+  it('should receive message on submit error', loginFailureSubmitTest)
 })
